@@ -14,14 +14,6 @@ models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI(title="Library Management API")
 
 
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @app.post(
     "/authors/",
     response_model=schemas.Author,
@@ -63,7 +55,7 @@ def read_author(author_id: int, db: Session = Depends(get_db)):
 def create_book_for_author(
         author_id: int,
         book: schemas.BookCreate,
-        db: Session = Depends(get_db)
+        db: Session = Depends(database.get_db)
 ):
     db_author = crud.get_author(db, author_id=author_id)
     if db_author is None:
@@ -80,7 +72,7 @@ def read_books(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 
 
 @app.get("/authors/{author_id}/books/", response_model=List[schemas.Book])
-def read_books_by_author(author_id: int, db: Session = Depends(get_db)):
+def read_books_by_author(author_id: int, db: Session = Depends(database.get_db)):
     db_author = crud.get_author(db, author_id=author_id)
     if db_author is None:
         raise HTTPException(
